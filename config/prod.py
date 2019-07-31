@@ -19,7 +19,7 @@ DATABASES.update(
     {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'APP_CODE',  # 数据库名
+            'NAME': APP_CODE,  # 数据库名
             'USER': 'root',  # 数据库用户
             'PASSWORD': 'fZEDNmg8bI',  # 数据库密码
             'HOST': '192.168.1.48',  # 数据库主机
