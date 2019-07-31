@@ -1,0 +1,6 @@
+.idea/
+celerybeat.pid
+venv
+
+__pycache__/
+config/__init__.py

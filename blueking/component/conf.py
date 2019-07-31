@@ -13,7 +13,7 @@ try:
 except Exception:
     APP_CODE = ''
     SECRET_KEY = ''
-    COMPONENT_SYSTEM_HOST = ''
+    COMPONENT_SYSTEM_HOST = 'http://paas.jh.com/'
     DEFAULT_BK_API_VER = 'v2'
 
 CLIENT_ENABLE_SIGNATURE = False
