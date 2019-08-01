@@ -22,7 +22,8 @@ from blueapps.conf.default_settings import *  # noqa
 # 请在这里加入你的自定义 APP
 INSTALLED_APPS += (
     'home_application',
-    'mako_application'
+    'mako_application',
+    'corsheaders'
 )
 
 # 这里是默认的中间件，大部分情况下，不需要改动
@@ -50,8 +51,34 @@ INSTALLED_APPS += (
 
 # 自定义中间件
 MIDDLEWARE += (
+    'corsheaders.middleware.CorsMiddleware',
+)
+# 跨域增加忽略
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = ()
+
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+    'VIEW',
 )
 
+CORS_ALLOW_HEADERS = (
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+)
 # 所有环境的日志级别可以在这里配置
 # LOG_LEVEL = 'INFO'
 

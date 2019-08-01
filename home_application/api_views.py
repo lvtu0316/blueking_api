@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import operator
 from datetime import datetime
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -75,19 +76,26 @@ def get_data(request):
             'sql': 'select max(pct_used) as mem from ' + str(
                 biz['bk_biz_id']) + '_system_mem where time >= "1m" group by ip order by time desc limit 1'
         }
+        disk_kwargs = {
+            'sql': 'select max(in_use) as disk from ' + str(
+                biz['bk_biz_id']) + '_system_disk where time >= "1m" group by ip order by time desc limit 1'
+        }
         cpu = client.monitor.query_data(cpu_kwargs)
         mem = client.monitor.query_data(mem_kwargs)
-        if len(cpu['data']['list']) > 0 and len(mem['data']['list']) > 0:
+        disk = client.monitor.query_data(disk_kwargs)
+        if len(cpu['data']['list']) > 0 and len(mem['data']['list']) > 0 and len(disk['data']['list']):
             business.append({
                 'biz_name' : biz['bk_biz_name'],
                 'cpu' : round(cpu['data']['list'][0]['cpu'], 2),
                 'mem' : round(mem['data']['list'][0]['mem'], 2),
+                'disk' : round(disk['data']['list'][0]['mem'], 2),
             })
         else:
             business.append({
                 'biz_name': biz['bk_biz_name'],
                 'cpu': 0,
                 'mem': 0,
+                'disk':0,
             })
     result = dict()
     result['data'] = business
@@ -123,6 +131,8 @@ def disk_use(request):
                 'disk_use': 0,
             })
     result = dict()
+    fun = operator.attrgetter('disk_use')
+    business.sort(key=fun)
     result['data'] = business
     result['code'] = 200
     result['message'] = "Success"
