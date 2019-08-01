@@ -39,7 +39,7 @@ MIDDLEWARE = (
  'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
  'django.contrib.messages.middleware.MessageMiddleware',
  # 跨域检测中间件， 默认关闭
- 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+ # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
  'django.middleware.security.SecurityMiddleware',
 #     # 蓝鲸静态资源服务
  'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -57,7 +57,7 @@ MIDDLEWARE += (
 # 跨域增加忽略
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_ORIGIN_WHITELIST = ()
+CORS_ORIGIN_WHITELIST = ( )
 
 CORS_ALLOW_METHODS = (
     'DELETE',

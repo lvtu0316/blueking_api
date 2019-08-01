@@ -23,8 +23,10 @@ def type_count(request):
     result = dict(data=list(TypeCount.objects.values(*fields)))
     result['code'] = 200
     result['message'] = "Success"
-    return HttpResponse(json.dumps(result), content_type='application/json')
-
+    response = HttpResponse(json.dumps(result), content_type='application/json')
+    response["Access-Control-Allow-Origin"] = "*"
+    response["Access-Control-Allow-Methods"] = "POST, GET, OPTIONS"
+    return response
 
 def week_date(request):
     """
