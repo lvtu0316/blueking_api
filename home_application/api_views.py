@@ -9,8 +9,10 @@ from blueking.component.shortcuts import get_client_by_request
 from blueking.component.shortcuts import get_client_by_user
 from .functions import str2localtime, get_current_week
 from .models import Alarm, TypeCount, Option, BizCount, CPU, Mem, Disk
+from django.views.decorators.csrf import csrf_exempt
+from blueapps.account.decorators import login_exempt
 
-
+@login_exempt
 def biz_count(request):
     fields = {'percent', 'biz_name', 'count'}
     result = dict(data=list(BizCount.objects.values(*fields)))
@@ -18,6 +20,7 @@ def biz_count(request):
     result['message'] = "Success"
     return HttpResponse(json.dumps(result), content_type='application/json')
 
+@login_exempt
 def type_count(request):
     fields = {'percent', 'count', 'type_name'}
     result = dict(data=list(TypeCount.objects.values(*fields)))
@@ -26,6 +29,7 @@ def type_count(request):
     return HttpResponse(json.dumps(result), content_type='application/json')
 
 
+@login_exempt
 def week_date(request):
     """
     查询每周数据
@@ -59,6 +63,7 @@ def week_date(request):
     return HttpResponse(json.dumps(result), content_type='application/json')
     # def get_query_data(request):
 
+@login_exempt
 def get_data(request):
     """
     获取业务下cpu,内存
@@ -105,6 +110,7 @@ def get_data(request):
     return HttpResponse(json.dumps(result), content_type='application/json')
 
 
+@login_exempt
 def disk_use(request):
     """
     获取业务下磁盘使用
@@ -139,6 +145,7 @@ def disk_use(request):
 
     return HttpResponse(json.dumps(result), content_type='application/json')
 
+@login_exempt
 def char_data(request):
     """
     图表数据
