@@ -25,6 +25,7 @@ INSTALLED_APPS = (
 
 MIDDLEWARE = (
     # request instance provider
+    'corsheaders.middleware.CorsMiddleware',
     'blueapps.middleware.request_provider.RequestProvider',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -43,6 +44,8 @@ MIDDLEWARE = (
     # exception middleware
     'blueapps.core.exceptions.middleware.AppExceptionMiddleware'
 )
+
+
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
