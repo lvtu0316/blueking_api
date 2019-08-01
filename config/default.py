@@ -40,7 +40,7 @@ MIDDLEWARE = (
  'django.contrib.messages.middleware.MessageMiddleware',
  # 跨域检测中间件， 默认关闭
  # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
- 'django.middleware.security.SecurityMiddleware',
+ # 'django.middleware.security.SecurityMiddleware',
 #     # 蓝鲸静态资源服务
  'whitenoise.middleware.WhiteNoiseMiddleware',
  # Auth middleware
