@@ -61,7 +61,7 @@ def get_alarms(request):
     # 参数
     kwargs = {'bk_biz_id': biz_id,
               'source_time__gte': source_time__gte,
-              'page_size':22,
+              'page_size':10000,
               'source_time__lte': source_time__lte
               }
     result = client.monitor.get_alarms(kwargs)
@@ -89,9 +89,31 @@ def type_alarm_count(request):
     total = int(Option.objects.get(name='total_count').value)
     q1 = Q()
     q1.connector = 'OR'  # 连接方式
+    # base(基础)、cpu(CPU)、mem(内存)、net(网络)、disk(磁盘)、system_env(系统)、
+    # base_alarm(事件)、gse_custom_event(字符型)、proc_port(进程端口)、
+    # custom(自定义)、keyword(关键字)、process(进程)、selfscript(脚本)、
+    # uptimecheck(服务拨测)、apache、mysql、nginx、redis、tomcat、ad、ceph、
+    # consul、elastic、exchange2010、haproxy、iis、jmx、kafka、memcache、
+    # mongodb、mssql、oracle、rabbitmq、weblogic、zookeeper
+    # 等
     q1.children.append(('alarm_type', 'proc_port'))
     q1.children.append(('alarm_type', 'proc'))
     q1.children.append(('alarm_type', 'load'))
+    q1.children.append(('alarm_type', 'base'))
+    q1.children.append(('alarm_type', 'cpu'))
+    q1.children.append(('alarm_type', 'mem'))
+    q1.children.append(('alarm_type', 'net'))
+    q1.children.append(('alarm_type', 'process'))
+    q1.children.append(('alarm_type', 'selfscript'))
+    q1.children.append(('alarm_type', 'disk'))
+    q1.children.append(('alarm_type', 'system_env'))
+    q1.children.append(('alarm_type', 'base_alarm'))
+    q1.children.append(('alarm_type', 'gse_custom_event'))
+    q1.children.append(('alarm_type', 'custom'))
+    q1.children.append(('alarm_type', 'keyword'))
+
+
+
     count = Alarm.objects.filter(q1).count()
     dic = {
         'type_name': '服务器',
