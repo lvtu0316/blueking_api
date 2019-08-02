@@ -4,8 +4,8 @@ from datetime import datetime
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Q
-from blueking.component.shortcuts import get_client_by_request
 from blueking.component.shortcuts import get_client_by_user
+from blueapps.account.decorators import login_exempt
 from .functions import str2localtime, get_current_week
 from .models import Alarm, TypeCount, Option, BizCount, CPU, Mem, Disk
 
@@ -18,13 +18,15 @@ def home(request):
     return render(request, 'home_application/home.html')
 
 
+@login_exempt
 def getbusiness(request):
     """
     查询所有业务
     :param request:
     :return:
     """
-    client = get_client_by_request(request)
+    username = "admin"
+    client = get_client_by_user(username)
     result = client.cc.search_business()
     return HttpResponse(json.dumps(result), content_type='application/json')
 
@@ -54,7 +56,8 @@ def get_alarms(request):
     :param request:
     :return:
     """
-    client = get_client_by_request(request)
+    user = 'admin'
+    client = get_client_by_user(user)
     biz_id = request.GET.get('biz_id')
     source_time__gte = '2019-07-01 00:00:00'
     source_time__lte = datetime.now()
@@ -133,7 +136,8 @@ def total_count(request):
     :param request:
     :return:
     """
-    client = get_client_by_request(request)
+    user = 'admin'
+    client = get_client_by_user(user)
     result = client.cc.search_business()
     count = 0
     if result['code'] == 0:
@@ -178,7 +182,8 @@ def biz_total_count(request):
     :param request:
     :return:
     """
-    client = get_client_by_request(request)
+    user = 'admin'
+    client = get_client_by_user(user)
     result = client.cc.search_business()
     count = 0
     if result['code'] == 0:
@@ -211,7 +216,8 @@ def cpu_db(request):
     :param request:
     :return:
     """
-    client = get_client_by_request(request)
+    user = 'admin'
+    client = get_client_by_user(user)
     bizs = client.cc.search_business()
     for biz in bizs['data']['info']:
         kwargs = {
@@ -237,7 +243,8 @@ def mem_db(request):
     :param request:
     :return:
     """
-    client = get_client_by_request(request)
+    user = 'admin'
+    client = get_client_by_user(user)
     bizs = client.cc.search_business()
     for biz in bizs['data']['info']:
         kwargs = {
@@ -263,7 +270,8 @@ def disk_db(request):
     :param request:
     :return:
     """
-    client = get_client_by_request(request)
+    user = 'admin'
+    client = get_client_by_user(user)
     bizs = client.cc.search_business()
     for biz in bizs['data']['info']:
         kwargs = {

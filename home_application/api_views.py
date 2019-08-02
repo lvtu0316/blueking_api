@@ -161,7 +161,7 @@ def disk_use(request):
     result = dict()
     fun = operator.attrgetter('disk_use')
     business.sort(key = lambda x:x["disk_use"], reverse=True)
-    result['data'] = business
+    result['data'] = business[0:3]
     result['code'] = 200
     result['message'] = "Success"
 
