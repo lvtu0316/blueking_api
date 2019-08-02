@@ -22,7 +22,34 @@ def biz_count(request):
 @login_exempt
 def type_count(request):
     fields = {'percent', 'count', 'type_name'}
-    result = dict(data=list(TypeCount.objects.values(*fields)))
+    sys_type = ['proc_port', 'proc', 'load']
+    mid_type = ['nginx', 'tomcat']
+    database_type = ['mysql', 'oracle']
+
+
+    total = Alarm.objects.count()
+    sys_count = Alarm.objects.filter(alarm_type__in=sys_type).count()
+    mid_count = Alarm.objects.filter(alarm_type__in=mid_type).count()
+    database_count = Alarm.objects.filter(alarm_type__in=database_type).count()
+    data = [
+        {
+            'type_name': '服务器',
+            'percent': round(sys_count/total*100, 2),
+            'count': sys_count,
+        },
+        {
+            'type_name': '中间件',
+            'percent': round(mid_count/total*100, 2),
+            'count' : mid_count,
+        },
+        {
+            'type_name': '数据库',
+            'percent': round(database_count/total*100, 2),
+            'count': database_count,
+        }
+    ]
+    result = dict
+    result = dict(data=data)
     result['code'] = 200
     result['message'] = "Success"
     return HttpResponse(json.dumps(result), content_type='application/json')
@@ -133,7 +160,7 @@ def disk_use(request):
             })
     result = dict()
     fun = operator.attrgetter('disk_use')
-    business.sort(key=fun)
+    business.sort(key = lambda x:x["disk_use"], reverse=True)
     result['data'] = business
     result['code'] = 200
     result['message'] = "Success"
