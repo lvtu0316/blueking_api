@@ -182,9 +182,13 @@ def char_data(request):
             'sql': 'select max(usage) as usage from 2_system_cpu_detail where time >= "1h" group by ip,minute10 order by time desc limit 10'
         }
     if type == 2:
-        data_list = list(Mem.objects.values('mem').order_by('-time')[0:10])
+        kwargs = {
+            'sql': 'select max(pct_used) as usage from 2_system_mem where time >= "1h" group by ip,minute10 order by time desc limit 10'
+        }
     if type == 3:
-        data_list = list(Disk.objects.values('disk').order_by('-time')[0:10])
+        kwargs = {
+            'sql': 'select max(in_use) as usage from 2_system_disk where time >= "1h" group by ip,minute10 order by time desc limit 10'
+        }
     user = 'admin'
     client = get_client_by_user(user)
     date_list = client.monitor.query_data(kwargs)
