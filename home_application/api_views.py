@@ -1,20 +1,40 @@
 # -*- coding: utf-8 -*-
 import json
 import operator
-from datetime import datetime
-from django.shortcuts import render
+from datetime import datetime, timedelta
+import numpy as np
 from django.http import HttpResponse
-from django.db.models import Q
 from blueking.component.shortcuts import get_client_by_user
-from .functions import str2localtime, get_current_week
-from .models import Alarm, TypeCount, Option, BizCount, CPU, Mem, Disk
-from django.views.decorators.csrf import csrf_exempt
+from .functions import get_current_week
 from blueapps.account.decorators import login_exempt
 
 @login_exempt
 def biz_count(request):
     fields = {'percent', 'biz_name', 'count'}
-    result = dict(data=list(BizCount.objects.values(*fields)))
+    result = dict
+    list = []
+    total = 0
+    user = 'admin'
+    client = get_client_by_user(user)
+    bizs = client.cc.search_business()
+    for biz in bizs['data']['info']:
+        kwargs = {'bk_biz_id': biz['bk_biz_id'],
+                  'source_time__gte': '2019-07-01 00:00:00',
+                  'source_time__lte': datetime.now()
+                  }
+        alarm = client.monitor.get_alarms(kwargs)
+        if alarm['code'] == '0':
+            list.append({
+                'biz_name': biz['bk_biz_name'],
+                'percent': alarm['data']['total']
+            })
+            total += alarm['data']['total']
+
+    key = 0
+    for one in list:
+        list[key]['percent'] = round(one['percent']/total*100,2)
+        key += 1
+    result = dict(data=list)
     result['code'] = 200
     result['message'] = "Success"
     return HttpResponse(json.dumps(result), content_type='application/json')
@@ -89,19 +109,37 @@ def week_date(request):
     type = int(request.GET.get('type'))
     alarmtype = []
     if type == 1: #服务器
-        alarmtype = ['proc_port', 'proc', 'load']
+        alarmtype = 'proc_port,proc,load,base,cpu,mem,net,disk,system_env,base_alarm,gse_custom_event,proc_port,custom,keyword,process,selfscript'
     if type == 2: #中间件
-        alarmtype = ['nginx', 'tomcat']
+        alarmtype = 'nginx,tomcat,apache,ad,ceph,consul,iis,weblogic,zookeeper'
     if type == 3: #数据库
-        alarmtype = ['mysql']
-
+        alarmtype = 'mysql,oracle,memcache,mongodb,mssql,elastic,rabbitmq,redis'
+    user = 'admin'
+    client = get_client_by_user(user)
     week_list = get_current_week()
     result = dict()
     list = []
+    list_sum = [0, 0, 0, 0, 0, 0, 0]
     i = 0
-    for day in week_list:
-        list.append(Alarm.objects.filter(Q(alarm_time__year=day.year, alarm_time__month=day.month, alarm_time__day=day.day) & Q(alarm_type__in=alarmtype)).count())
-    result['data'] = list
+    bizs = client.cc.search_business()
+    sys_sum = 0
+    mid_sum = 0
+    database_sum = 0
+    names = locals()
+    for biz in bizs['data']['info']:
+        names['list_%s' % biz['bk_biz_id']] = []
+        for day in week_list:
+            kwargs = {'bk_biz_id': biz['bk_biz_id'],
+                      'source_time__gte': day,
+                      'page_size': 10000,
+                      'source_time__lte': day + timedelta(1),
+                      'alarm_type__in': alarmtype
+                      }
+            alarm = client.monitor.get_alarms(kwargs)
+            if alarm['code'] == '0':
+                names['list_%s'%biz['bk_biz_id']].append(alarm['data']['total'])
+        list_sum = np.sum([list_sum, names['list_%s'%biz['bk_biz_id']]], axis = 0)
+    result['data'] = list_sum.tolist()
     result['code'] = 200
     result['message'] = "Success"
     return HttpResponse(json.dumps(result), content_type='application/json')
@@ -200,18 +238,24 @@ def char_data(request):
     """
 
     type = int(request.GET.get('type'))
+    biz_id = request.GET.get('id')
+    if biz_id is None:
+        biz_id = 2
     data_list = []
     if type == 1:
         kwargs = {
-            'sql': 'select max(usage) as usage from 2_system_cpu_detail where time >= "1h" group by ip,minute10 order by time desc limit 10'
+            'sql': 'select max(usage) as usage from ' + str(biz_id) + '_system_cpu_detail where time >= "1h" '
+                                                                 'group by ip,minute10 order by time desc limit 10'
         }
     if type == 2:
         kwargs = {
-            'sql': 'select max(pct_used) as usage from 2_system_mem where time >= "1h" group by ip,minute10 order by time desc limit 10'
+            'sql': 'select max(pct_used) as usage from ' + str(biz_id) + '_system_mem where time >= "1h"'
+                                                                    ' group by ip,minute10 order by time desc limit 10'
         }
     if type == 3:
         kwargs = {
-            'sql': 'select max(in_use) as usage from 2_system_disk where time >= "1h" group by ip,minute10 order by time desc limit 10'
+            'sql': 'select max(in_use) as usage from ' + str(biz_id) + '_system_disk where time >= "1h" '
+                   'group by ip,minute10 order by time desc limit 10'
         }
     user = 'admin'
     client = get_client_by_user(user)

@@ -21,3 +21,4 @@ httplib2==0.9.1
 #uWSGI==2.0.13.1
 
 django-cors-headers
+numpy
