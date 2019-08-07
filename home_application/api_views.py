@@ -21,34 +21,58 @@ def biz_count(request):
 
 @login_exempt
 def type_count(request):
-    fields = {'percent', 'count', 'type_name'}
-    sys_type = ['proc_port', 'proc', 'load']
-    mid_type = ['nginx', 'tomcat']
-    database_type = ['mysql', 'oracle']
+    sys_type = 'proc_port,proc,load,base,cpu,mem,net,disk,system_env,base_alarm,gse_custom_event,proc_port,custom,keyword,process,selfscript'
+    mid_type = 'nginx,tomcat,apache,ad,ceph,consul,iis,weblogic,zookeeper'
+    database_type = 'mysql,oracle,memcache,mongodb,mssql,elastic,rabbitmq,redis'
+    user = 'admin'
+    client = get_client_by_user(user)
+    bizs = client.cc.search_business()
+    sys_sum = 0
+    mid_sum = 0
+    database_sum = 0
+    for biz in bizs['data']['info']:
+        kwargs = {'bk_biz_id': biz['bk_biz_id'],
+                  'source_time__gte': '2019-07-01 00:00:00',
+                  'page_size': 10000,
+                  'source_time__lte': datetime.now()
+                  }
+        #服务器数据
+        kwargs.update(alarm_type__in=sys_type)
+        alarms = client.monitor.get_alarms(kwargs)
+        if alarms['code'] == '0':
+            sys_count = alarms['data']['total']
+            sys_sum += sys_count
+        #中间件
+        kwargs.update(alarm_type__in=mid_type)
+        alarms = client.monitor.get_alarms(kwargs)
+        if alarms['code'] == '0':
+            mid_count = alarms['data']['total']
+            mid_sum += mid_count
+        # 中间件
+        kwargs.update(alarm_type__in=database_type)
+        alarms = client.monitor.get_alarms(kwargs)
+        if alarms['code'] == '0':
+            database_count = alarms['data']['total']
+            database_sum += database_count
 
-
-    total = Alarm.objects.count()
-    sys_count = Alarm.objects.filter(alarm_type__in=sys_type).count()
-    mid_count = Alarm.objects.filter(alarm_type__in=mid_type).count()
-    database_count = Alarm.objects.filter(alarm_type__in=database_type).count()
+    total = sys_sum + mid_sum + database_sum
     data = [
         {
             'type_name': '服务器',
-            'percent': round(sys_count/total*100, 2),
-            'count': sys_count,
+            'percent': round(sys_sum/total*100, 2),
+            'count': sys_sum,
         },
         {
             'type_name': '中间件',
-            'percent': round(mid_count/total*100, 2),
-            'count' : mid_count,
+            'percent': round(mid_sum/total*100, 2),
+            'count' : mid_sum,
         },
         {
             'type_name': '数据库',
-            'percent': round(database_count/total*100, 2),
-            'count': database_count,
+            'percent': round(database_sum/total*100, 2),
+            'count': database_sum,
         }
     ]
-    result = dict
     result = dict(data=data)
     result['code'] = 200
     result['message'] = "Success"
