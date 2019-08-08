@@ -130,8 +130,8 @@ def week_date(request):
         names['list_%s' % biz['bk_biz_id']] = []
         for day in week_list:
             kwargs = {'bk_biz_id': biz['bk_biz_id'],
-                      'source_time__gte': day.strftime("%Y-%m-%d %H:%M:%S"),
-                      'source_time__lte': (day + timedelta(1)).strftime("%Y-%m-%d %H:%M:%S"),
+                      'source_time__gte': datetime.strptime(str(day), "%Y-%m-%d") + timedelta(hours=-8),
+                      'source_time__lte': datetime.strptime(str(day + timedelta(1)), "%Y-%m-%d") + timedelta(hours=-8),
                       'alarm_type__in': alarmtype
                       }
             alarm = client.monitor.get_alarms(kwargs)
