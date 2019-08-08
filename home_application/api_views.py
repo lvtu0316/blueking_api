@@ -263,7 +263,10 @@ def char_data(request):
     datelist = []
     for date in date_list['data']['list']:
         datelist.append(datetime.fromtimestamp(date['time']/1000).strftime('%H:%M'))
-        datalist.append( round(date['usage'],2))
+        if date['usage'] is None:
+            datalist.append(0)
+        else:
+            datalist.append( round(date['usage'],2))
     result = dict(data={
         'data_list':datalist,
         'date_list':datelist
