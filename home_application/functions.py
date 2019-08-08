@@ -27,7 +27,7 @@ def get_current_week():
     saturday = friday + one_day
     sunday = saturday + one_day
     # 返回当前的一星期的日期
-    week = [monday, tuesday, wednesday, tuesday, friday, saturday, sunday]
+    week = [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
 
     return week
 

@@ -130,9 +130,8 @@ def week_date(request):
         names['list_%s' % biz['bk_biz_id']] = []
         for day in week_list:
             kwargs = {'bk_biz_id': biz['bk_biz_id'],
-                      'source_time__gte': day,
-                      'page_size': 10000,
-                      'source_time__lte': day + timedelta(1),
+                      'source_time__gte': day.strftime("%Y-%m-%d %H:%M:%S"),
+                      'source_time__lte': (day + timedelta(1)).strftime("%Y-%m-%d %H:%M:%S"),
                       'alarm_type__in': alarmtype
                       }
             alarm = client.monitor.get_alarms(kwargs)
@@ -239,7 +238,7 @@ def char_data(request):
 
     type = int(request.GET.get('type'))
     biz_id = request.GET.get('id')
-    if biz_id is None:
+    if biz_id is None or biz_id == '':
         biz_id = 2
     data_list = []
     if type == 1:
