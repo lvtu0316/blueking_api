@@ -4,6 +4,7 @@ from datetime import datetime
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Q
+from blueapps.account.decorators import login_exempt
 from blueking.component.shortcuts import get_client_by_user
 from blueapps.account.decorators import login_exempt
 from .functions import str2localtime, get_current_week
@@ -30,7 +31,7 @@ def getbusiness(request):
     result = client.cc.search_business()
     return HttpResponse(json.dumps(result), content_type='application/json')
 
-
+@login_exempt
 def get_business_host(request):
     """
     查询业务下主机
