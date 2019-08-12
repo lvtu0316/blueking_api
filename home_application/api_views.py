@@ -170,25 +170,30 @@ def get_data(request):
         cpu = client.monitor.query_data(cpu_kwargs)
         mem = client.monitor.query_data(mem_kwargs)
         disk = client.monitor.query_data(disk_kwargs)
-        if len(cpu['data']['list']) > 0 and len(mem['data']['list']) > 0 and len(disk['data']['list']):
-            business.append({
-                'biz_name' : biz['bk_biz_name'],
-                'cpu' : round(cpu['data']['list'][0]['cpu'], 2),
-                'mem' : round(mem['data']['list'][0]['mem'], 2),
-                'disk' : round(disk['data']['list'][0]['disk'], 2),
-            })
+        if cpu['result'] != False and mem['result'] != False and disk['result'] != False\
+                and cpu['code'] == '0' and mem['code'] == '0' and disk['code'] == '0':
+            if len(cpu['data']['list']) > 0 and len(mem['data']['list']) > 0 and len(disk['data']['list']):
+                business.append({
+                    'biz_name' : biz['bk_biz_name'],
+                    'cpu' : round(cpu['data']['list'][0]['cpu'], 2),
+                    'mem' : round(mem['data']['list'][0]['mem'], 2),
+                    'disk' : round(disk['data']['list'][0]['disk'], 2),
+                })
+            else:
+                business.append({
+                    'biz_name': biz['bk_biz_name'],
+                    'cpu': 0,
+                    'mem': 0,
+                    'disk':0,
+                })
+                result = dict()
+
         else:
-            business.append({
-                'biz_name': biz['bk_biz_name'],
-                'cpu': 0,
-                'mem': 0,
-                'disk':0,
-            })
-    result = dict()
+            break
+
     result['data'] = business
     result['code'] = 200
     result['message'] = "Success"
-
     return HttpResponse(json.dumps(result), content_type='application/json')
 
 
@@ -209,16 +214,19 @@ def disk_use(request):
                 biz['bk_biz_id']) + '_system_disk where time >= "1m" group by ip order by time desc limit 1'
         }
         disk = client.monitor.query_data(kwargs)
-        if len(disk['data']['list']) > 0:
-            business.append({
-                'biz_name': biz['bk_biz_name'],
-                'disk_use': round(disk['data']['list'][0]['disk'], 2),
-            })
+        if disk['result'] != False and disk['code'] == '0':
+            if len(disk['data']['list']) > 0:
+                business.append({
+                    'biz_name': biz['bk_biz_name'],
+                    'disk_use': round(disk['data']['list'][0]['disk'], 2),
+                })
+            else:
+                business.append({
+                    'biz_name': biz['bk_biz_name'],
+                    'disk_use': 0,
+                })
         else:
-            business.append({
-                'biz_name': biz['bk_biz_name'],
-                'disk_use': 0,
-            })
+            break
     result = dict()
     fun = operator.attrgetter('disk_use')
     business.sort(key = lambda x:x["disk_use"], reverse=True)
@@ -261,19 +269,24 @@ def char_data(request):
     date_list = client.monitor.query_data(kwargs)
     datalist = []
     datelist = []
-    for date in date_list['data']['list']:
-        datelist.append(datetime.fromtimestamp(date['time']/1000).strftime('%H:%M'))
-        if date['usage'] is None:
-            datalist.append(0)
-        else:
-            datalist.append( round(date['usage'],2))
-    result = dict(data={
-        'data_list':datalist,
-        'date_list':datelist
-    })
+    if date_list['code'] == '0' and date_list['result'] != False:
+        for date in date_list['data']['list']:
+            datelist.append(datetime.fromtimestamp(date['time']/1000).strftime('%H:%M'))
+            if date['usage'] is None:
+                datalist.append(0)
+            else:
+                datalist.append( round(date['usage'],2))
+        result = dict(data={
+            'data_list':datalist,
+            'date_list':datelist
+        })
 
-    result['code'] = 200
-    result['message'] = "Success"
+        result['code'] = 200
+        result['message'] = "Success"
+    else:
+        result = dict()
+        result['code'] = 500
+        result['message'] = "数据获取异常"
     return HttpResponse(json.dumps(result), content_type='application/json')
 
 
