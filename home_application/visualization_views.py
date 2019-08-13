@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.http import HttpResponse
-from django.db.models import Q
+from .functions import str2localtime
 from blueking.component.shortcuts import get_client_by_user
 from blueapps.account.decorators import login_exempt
 
@@ -95,3 +95,46 @@ def usage(request):
     result['code'] = 200
     result['message'] = "Success"
     return HttpResponse(json.dumps(result), content_type='application/json')
+
+@login_exempt
+def alarms(request):
+    """
+    获取所有业务主机近5分钟报警信息
+    :param request:
+    :return:
+    """
+    username = "admin"
+    client = get_client_by_user(username)
+    business = client.cc.search_business()
+    result = dict()
+    alarms = []
+    start_time = (datetime.now() - timedelta(minutes=5) - timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
+    if not business['result']:
+        result['code'] = 500
+        result['message'] = '服务异常'
+    else:
+        for biz in business['data']['info']:
+            kwargs = {
+                    'bk_biz_id': biz['bk_biz_id'],
+                    'source_time__gte': start_time,
+                    'page_size': 10000,
+                    'source_time__lte': datetime.now()
+                }
+            res = client.monitor.get_alarms(kwargs)
+            if res['result'] == True and res['data']['total'] > 0:
+                for alarm in res['data']['result']:
+                    alarms.append({
+                        'title': alarm['alarm_content']['title'],
+                        'content': alarm['alarm_content']['content'],
+                        'ip': alarm['ip'],
+                        'bk_biz_id': alarm['bk_biz_id'],
+                        'bk_biz_name': alarm['alarm_content']['cc_biz_name'],
+                        'source_time': str2localtime(alarm['source_time']),
+                    })
+        result['data'] = alarms
+        result['code'] = 200
+        result['message'] = 'success'
+    return HttpResponse(json.dumps(result), content_type='application/json')
+
+
+

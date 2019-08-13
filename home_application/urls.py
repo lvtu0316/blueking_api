@@ -37,5 +37,6 @@ urlpatterns = [
     #3D 可视化
     url(r'hosts$', visualization_views.hosts, name="hosts"),
     url(r'usage$', visualization_views.usage, name="usage"),
+    url(r'alarms$', visualization_views.alarms, name="alarms"),
 
 ]
