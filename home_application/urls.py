@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url
 
-from home_application import views, api_views
+from home_application import views, api_views, visualization_views
 
 urlpatterns = [
     url(r'^$', views.home),
@@ -33,5 +33,9 @@ urlpatterns = [
     url(r'mem_db$', views.mem_db, name="mem-db"),
     url(r'disk_db$', views.disk_db, name="disk-db"),
     url(r'char_data$', api_views.char_data, name="char-data"),
+
+    #3D 可视化
+    url(r'hosts$', visualization_views.hosts, name="hosts"),
+    url(r'usage$', visualization_views.usage, name="usage"),
 
 ]
