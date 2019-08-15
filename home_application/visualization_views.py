@@ -108,7 +108,7 @@ def alarms(request):
     business = client.cc.search_business()
     result = dict()
     alarms = []
-    start_time = (datetime.now() - timedelta(minutes=5) - timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
+    start_time = (datetime.now() - timedelta(minutes=30) - timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")
     if not business['result']:
         result['code'] = 500
         result['message'] = '服务异常'
@@ -129,7 +129,7 @@ def alarms(request):
                         'ip': alarm['ip'],
                         'bk_biz_id': alarm['bk_biz_id'],
                         'bk_biz_name': alarm['alarm_content']['cc_biz_name'],
-                        'source_time': str2localtime(alarm['source_time']),
+                        'source_time': str2localtime(alarm['source_time']).strftime('%Y-%m-%d %H:%M:%S'),
                     })
         result['data'] = alarms
         result['code'] = 200
