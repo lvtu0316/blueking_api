@@ -151,6 +151,7 @@ def get_data(request):
     :param request:
     :return:
     """
+    type = request.GET.get('type')
     user = 'admin'
     client = get_client_by_user(user)
     bizs = client.cc.search_business()
@@ -190,7 +191,11 @@ def get_data(request):
 
         else:
             break
-
+    if type:
+        business.sort(key=lambda k: (k.get(type, 0)), reverse=True)
+    else:
+        #排序 先排CPU，CPU相同排mem，都相同排disk
+        business.sort(key=lambda k: (k.get('cpu', 0), k.get('mem', 0),k.get('disk', 0)), reverse=True)
     result['data'] = business
     result['code'] = 200
     result['message'] = "Success"
@@ -290,3 +295,42 @@ def char_data(request):
     return HttpResponse(json.dumps(result), content_type='application/json')
 
 
+@login_exempt
+def get_crux(request):
+    """
+    获取CPU使用最大业务id
+    :param request:
+    :return:
+    """
+    user = 'admin'
+    client = get_client_by_user(user)
+    bizs = client.cc.search_business()
+    business = []
+    for biz in bizs['data']['info']:
+        cpu_kwargs = {
+            'sql' : 'select max(usage) as cpu from ' +str(biz['bk_biz_id'])+ '_system_cpu_detail where time >= "1m" group by ip order by time desc limit 1'
+        }
+
+        cpu = client.monitor.query_data(cpu_kwargs)
+        if cpu['result'] != False and cpu['code'] == '0':
+            if len(cpu['data']['list']) > 0:
+                business.append({
+                    'biz_id': biz['bk_biz_id'],
+                    'biz_name': biz['bk_biz_name'],
+                    'cpu': round(cpu['data']['list'][0]['cpu'], 2),
+                })
+            else:
+                business.append({
+                    'biz_id': biz['bk_biz_id'],
+                    'biz_name': biz['bk_biz_name'],
+                    'cpu': 0,
+                })
+                result = dict()
+
+        else:
+            break
+    business.sort(key=lambda k: (k.get('cpu', 0)), reverse=True)
+    result['data'] = business[0]
+    result['code'] = 200
+    result['message'] = "Success"
+    return HttpResponse(json.dumps(result), content_type='application/json')

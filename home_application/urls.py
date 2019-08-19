@@ -33,6 +33,7 @@ urlpatterns = [
     url(r'mem_db$', views.mem_db, name="mem-db"),
     url(r'disk_db$', views.disk_db, name="disk-db"),
     url(r'char_data$', api_views.char_data, name="char-data"),
+    url(r'get_crux$', api_views.get_crux, name="get_crux"),
 
     #3D 可视化
     url(r'hosts$', visualization_views.hosts, name="hosts"),
