@@ -34,6 +34,7 @@ def biz_count(request):
     for one in list:
         list[key]['percent'] = round(one['percent']/total*100,2)
         key += 1
+    list.sort(key=lambda k: (k.get('percent', 0)), reverse=True)
     result = dict(data=list)
     result['code'] = 200
     result['message'] = "Success"
