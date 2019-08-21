@@ -335,3 +335,36 @@ def get_crux(request):
     result['code'] = 200
     result['message'] = "Success"
     return HttpResponse(json.dumps(result), content_type='application/json')
+
+
+@login_exempt
+def get_proc(request):
+    """
+    获取进程使用资源情况
+    :param request:
+    :return:
+    """
+    user = 'admin'
+    client = get_client_by_user(user)
+    biz_id = 3
+    para = {'bk_biz_id': biz_id}
+    host = client.cc.search_host(para)
+
+    kwargs = {
+                'sql' : 'select cpu_usage_pct,mem_usage_pct,mem_res,mem_virt,fd_num from '+str(biz_id)+'_system_proc  group by proc_name order by time desc limit 1'
+    }
+    res = client.monitor.query_data(kwargs)
+    data = dict(list=res['data']['list'])
+    data['host'] = host['data']['info'][0]['host']['bk_host_innerip']
+    if res['result'] != False and res['code'] == '0':
+        if len(res['data']['list']) > 0:
+            result=dict(data=data)
+            result['code'] = 200
+            result['message'] = "Success"
+
+        else:
+            result = dict()
+            result['code'] = 500
+            result['message'] = "fail"
+
+    return HttpResponse(json.dumps(result), content_type='application/json')
