@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 import json
+import re
 from datetime import datetime
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.contrib.sites.models import Site
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from django.views.generic.base import View
 from blueapps.account.decorators import login_exempt
 from blueking.component.shortcuts import get_client_by_user
 from blueapps.account.decorators import login_exempt
 from .functions import str2localtime, get_current_week
-from .models import Alarm, TypeCount, Option, BizCount, CPU, Mem, Disk
+from .models import Alarm, TypeCount, Option, BizCount, CPU, Mem, Disk, VisualConf, VisualParameter
+from .forms import VisualConfForm, ParameterConfForm
+
 
 # 开发框架中通过中间件默认是需要登录态的，如有不需要登录的，可添加装饰器login_exempt
 # 装饰器引入 from blueapps.account.decorators import login_exempt
@@ -17,6 +23,199 @@ def home(request):
     首页
     """
     return render(request, 'home_application/home.html')
+
+def conf(request):
+    """
+    监控可视化配置->配置
+    """
+    return render(request, 'home_application/conf-list.html')
+
+
+class ConfListView(View):
+    """
+    获取可视化配置列表
+    """
+
+    def get(self, request):
+        fields = ['id', 'page_num', 'modular_num', 'modular_name', 'biz_name', 'api']
+        ret = dict(data=list(VisualConf.objects.values(*fields)))
+        ret['code'] = 200
+        ret['message'] = 'success'
+        return HttpResponse(json.dumps(ret), content_type='application/json')
+
+
+class ConfDetailView(View):
+    """
+    可视化配置页：查看、修改、新建数据
+    """
+
+    def get(self, request):
+        ret = dict()
+        if 'id' in request.GET and request.GET['id']:
+            visualconf = get_object_or_404(VisualConf, pk=request.GET.get('id'))
+            ret['conf'] = visualconf
+            if visualconf.kwargs:
+                ret['kwargs'] = visualconf.kwargs.split("|")
+
+        username = "admin"
+        client = get_client_by_user(username)
+        bizs = client.cc.search_business()
+        ret['bizs'] = bizs['data']['info']
+        return render(request, 'home_application/conf_detail.html', ret)
+
+    def post(self, request):
+        biz_id = request.POST.get('biz_id')
+        kwargs = request.POST.getlist('kwargs[]')
+        biz_name = request.POST.get('biz_name')
+        page_num = request.POST.get('page_num')
+        modular_num = request.POST.get('modular_num')
+        modular_name = request.POST.get('modular_name')
+        api = request.POST.get('api')
+        postData = {
+            "biz_id": int(biz_id),
+            "biz_name": biz_name,
+            "page_num": page_num,
+            "modular_num": modular_num,
+            "modular_name": modular_name,
+            "api": api,
+            "kwargs": '|'.join(kwargs)
+        }
+
+        res = dict(result=False)
+        if 'id' in request.POST and request.POST['id']:
+            structure = get_object_or_404(VisualConf, pk=request.POST.get('id'))
+        else:
+            structure = VisualConf()
+        conf_form = VisualConfForm(postData, instance=structure)
+        if conf_form.is_valid():
+            conf_form.save()
+            res['result'] = True
+        else:
+            pattern = '<li>.*?<ul class=.*?><li>(.*?)</li>'
+            errors = str(conf_form.errors)
+            asset_form_errors = re.findall(pattern, errors)
+            res['errors'] = asset_form_errors[0]
+        return HttpResponse(json.dumps(res), content_type='application/json')
+
+
+class ConfDeleteView(View):
+    """
+    删除数据：支持删除单条记录和批量删除
+    """
+
+    def post(self, request):
+        ret = dict(result=False)
+        if 'id' in request.POST and request.POST['id']:
+            id_list = map(int, request.POST.get('id').split(','))
+            VisualConf.objects.filter(id__in=id_list).delete()
+            ret['result'] = True
+        return HttpResponse(json.dumps(ret), content_type='application/json')
+
+
+def parameter(request):
+    """
+    监控可视化配置->参数
+    """
+    return render(request, 'home_application/parameter-list.html')
+
+
+class ParameterListView(View):
+    """
+    获取参数列表
+    """
+
+    def get(self, request):
+        fields = ['id', 'middleware', 'middleware_img']
+        ret = dict(data=list(VisualParameter.objects.values(*fields)))
+        return HttpResponse(json.dumps(ret), content_type='application/json')
+
+
+class ParameterDetailView(View):
+    """
+    可视化配置页：查看、修改、新建数据
+    """
+
+    def get(self, request):
+
+        ret = dict()
+        if 'id' in request.GET and request.GET['id']:
+            parameter = get_object_or_404(VisualParameter, pk=request.GET.get('id'))
+            ret['res'] = parameter
+
+        return render(request, 'home_application/parameter_detail.html', ret)
+
+    def post(self, request):
+        biz_id = request.POST.get('biz_id')
+        res = dict(result=False)
+        if 'id' in request.POST and request.POST['id']:
+            structure = get_object_or_404(VisualParameter, pk=request.POST.get('id'))
+        else:
+            structure = VisualParameter()
+        conf_form = ParameterConfForm(request.POST, instance=structure)
+        if conf_form.is_valid():
+            conf_form.save()
+            res['result'] = True
+        else:
+            pattern = '<li>.*?<ul class=.*?><li>(.*?)</li>'
+            errors = str(conf_form.errors)
+            asset_form_errors = re.findall(pattern, errors)
+            res['errors'] = asset_form_errors[0]
+        return HttpResponse(json.dumps(res), content_type='application/json')
+
+
+class ParameterDeleteView(View):
+    """
+    删除数据：支持删除单条记录和批量删除
+    """
+
+    def post(self, request):
+        ret = dict(result=False)
+        if 'id' in request.POST and request.POST['id']:
+            id_list = map(int, request.POST.get('id').split(','))
+            VisualParameter.objects.filter(id__in=id_list).delete()
+            ret['result'] = True
+        return HttpResponse(json.dumps(ret), content_type='application/json')
+
+
+class UploadImageView(View):
+    """
+    个人中心：上传图片
+        """
+
+    def post(self, request):
+        ret = dict(result=False)
+        file = request.FILES.get('middleware_img')
+        if 'id' in request.POST and request.POST['id']:
+            para = get_object_or_404(VisualParameter, pk=request.POST.get('id'))
+        else:
+            para = VisualParameter()
+        image_form = ParameterConfForm(data=request.POST, files=request.FILES, instance=para)
+        if image_form.is_valid():
+            image_form.save()
+            ret['result'] = True
+        else:
+            pattern = '<li>.*?<ul class=.*?><li>(.*?)</li>'
+            errors = str(image_form.errors)
+            asset_form_errors = re.findall(pattern, errors)
+            ret['errors'] = asset_form_errors[0]
+        return HttpResponse(json.dumps(ret), content_type='application/json')
+
+@login_exempt
+def getimg(request):
+    """
+    获取后台配置图标
+    """
+    fields = ['id', 'middleware', 'middleware_img']
+    ret = dict(data=list(VisualParameter.objects.values(*fields)))
+    host = request.META['HTTP_HOST']
+    i = 0
+    for img in ret['data']:
+        ret['data'][i]['middleware_img'] = "http://" + host + "/o/testapi/" + img['middleware_img']
+        i = i+1
+
+    ret['code'] = 200
+    ret['message'] = 'success'
+    return HttpResponse(json.dumps(ret), content_type='application/json')
 
 
 @login_exempt

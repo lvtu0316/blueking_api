@@ -1,17 +1,34 @@
-{% extends "base.html" %}
+{% extends "adm-left.html" %}
+{% load staticfiles %}
 
-{% block head %}
-	<title>蓝鲸开发框架</title>
-	{{ block.super }}
-{% endblock %}
-
-{% block navigation %}
-	<li class="king-navbar-active"><a href="{{ SITE_URL }}"><span>首页</span></a></li>
-{% endblock %}
+{% block title %}SandBox{% endblock %}
 
 {% block content %}
-	<div>
-		<h3>蓝鲸开发框架<small>助力你的自动化</small></h3>
-	</div>
+
+
+    <section class="content-header">
+      <h1>
+        配置
+      </h1>
+      <ol class="breadcrumb">
+        <li><a href="#"><i class="fa fa-dashboard"></i> 首页</a></li>
+      </ol>
+    </section>
+
+    <div class="pad margin no-print">
+      <div class="callout callout-info" style="margin-bottom: 0!important;">
+        <h4><i class="fa  fa-info-circle"></i> 提示信息:</h4>
+        本模块包含：监控可视化配置
+      </div>
+    </div>
+
+
 {% endblock %}
 
+{% block javascripts %}
+  <script type="text/javascript">
+	$(function() {
+		$('#index').addClass('active');
+	});
+  </script>
+{% endblock %}

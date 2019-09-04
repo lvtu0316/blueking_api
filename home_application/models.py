@@ -60,3 +60,20 @@ class Disk(models.Model):
     biz_id = models.IntegerField(verbose_name="业务ID")
     biz_name = models.CharField(max_length=20, verbose_name="业务名称")
     time = models.DateTimeField(verbose_name="时间")
+
+
+#可视化配置表
+class VisualConf(models.Model):
+    page_num = models.IntegerField(verbose_name="页面编号")
+    modular_num = models.IntegerField(verbose_name="模块编号")
+    modular_name = models.CharField(max_length=20, verbose_name="模块名称")
+    biz_name = models.CharField(max_length=20, verbose_name="业务名称", null=True)
+    biz_id = models.IntegerField(verbose_name="业务id", null=True)
+    api = models.CharField(max_length=200, verbose_name="接口地址")
+    kwargs = models.CharField(max_length=200, null=True, verbose_name="参数")
+
+
+class VisualParameter(models.Model):
+    middleware = models.CharField(max_length=20, verbose_name="中间件名称")
+    middleware_img = models.ImageField(upload_to="media/image/%Y/%m", max_length=100, verbose_name="中间件图标")
+

@@ -13,7 +13,7 @@ from blueapps.core.exceptions.base import ApiResultError, ApiNetworkError
 logger = logging.getLogger('component')
 
 
-def send(url, method, params, timeout=None, **kwargs):
+def send(url, method, params, timeout=600, **kwargs):
     """
     统一请求处理，定制化参数， GET 参数使用 form-data，POST 参数使用 json 字符串，返回内容
     要求为 JSON 格式

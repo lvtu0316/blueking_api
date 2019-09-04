@@ -1,0 +1,144 @@
+{% extends 'base-layer.html' %}
+{% load staticfiles %}
+
+{% block css %}
+<style>
+    /** 删除按钮 **/
+.removeVar{
+    margin:auto;
+    padding:5px;
+    display:inline-block;
+    background-color:#B02109;
+    color:#f1f1f1;
+    border:1px solid #005;
+    border-radius: 4px;
+    cursor: pointer;
+}
+</style>
+{% endblock %}
+{% block main %}
+<div class="box box-danger">
+	<form class="form-horizontal" id="addForm" method="post">
+		{% csrf_token %}
+		<input type="hidden" name='id' value="{{ conf.id }}" />
+		<div class="box-body">
+          <fieldset id="InputsWrapper">
+            <legend>
+              <h4>配置信息</h4>
+            </legend>
+            <div class="form-group has-feedback">
+                <label class="col-sm-2 control-label">页面编号</label>
+                <div class="col-sm-4">
+                    <input class="form-control" name="page_num" type="text" value="{{ conf.page_num }}"/>
+                </div>
+                <label class="col-sm-2 control-label">模块编号</label>
+                <div class="col-sm-4">
+                    <input class="form-control" name="modular_num" type="text" value="{{ conf.modular_num }}"/>
+                </div>
+
+
+            </div>
+
+            <div class="form-group has-feedback">
+                <label class="col-sm-2 control-label">模块名称</label>
+                <div class="col-sm-4">
+                    <input class="form-control" name="modular_name" type="text" value="{{ conf.modular_name }}"/>
+                </div>
+                <label class="col-sm-2 control-label">业务名称</label>
+                <div class="col-sm-4">
+                  <select class="form-control" name="biz_id" onChange="biz_name.value=this.options[this.selectedIndex].text">
+                    <option value={{ conf.biz_id }} > {{ conf.biz_name|default:"--级别--" }} </option>
+                      {% for biz in bizs  %}
+                            <option value="{{ biz.bk_biz_id }}">{{ biz.bk_biz_name }}</option>
+                      {% endfor %}
+
+                  </select>
+                <input name="biz_name" type="hidden" value="">
+                </div>
+            </div>
+
+            <div class="form-group has-feedback">
+                <label class="col-sm-2 control-label">接口地址</label>
+                <div class="col-sm-4">
+                    <input class="form-control" name="api" type="text" value="{{ conf.api }}"/>
+                </div>
+            </div>
+            {% for kw in kwargs %}
+                <div class="form-group has-feedback">
+                    <label class="col-sm-2 control-label">参数</label>
+                    <div class="col-sm-4" style="display:flex;">
+                        <input class="form-control" name="kwargs[]" type="text" value="{{ kw }}">
+                        <span class="removeVar">删</span>
+                    </div>
+                </div>
+
+            {% endfor %}
+
+
+          </fieldset>
+
+		</div>
+
+		<div class="box-footer ">
+			<div class="row span7 text-center ">
+              <button type="button" id="AddMoreTextBox" class="btn btn-default margin-right " >参数</button>
+              <button type="button" id="btnCancel" class="btn btn-default margin-right " >重置</button>
+              <button type="button" id="btnSave" class="btn btn-info margin-right " >保存</button>
+			</div>
+		</div>
+
+	</form>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script src="{% static 'plugins/combo-select/jquery.combo.select.js' %}"></script>
+<script type="text/javascript">
+
+	$("#btnSave").click(function(){
+		var data = $("#addForm").serialize();
+		$.ajax({
+			type: $("#addForm").attr('method'),
+			url : "{% url 'conf-detail' %}",
+			data : data,
+			cache: false,
+			success : function(msg) {
+				if (msg.result){
+					layer.alert('数据保存成功！', {icon: 1},function(index){
+					    parent.layer.closeAll(); //关闭所有弹窗
+                    });
+				}else{
+					layer.alert(msg.errors, {icon: 5});
+				}
+				return ;
+			}
+		});
+	});
+
+
+	/*点取消刷新新页面*/
+    $("#btnCancel").click(function () {
+	    window.location.reload();
+
+    });
+
+    /* 点击添加参数输入框*/
+    $(document).ready(function () {
+         var InputCount=0;
+         $("#AddMoreTextBox").click(function (e)
+         {
+                 InputCount++;
+                 $("#InputsWrapper").append('<div class="form-group has-feedback" ><label class="col-sm-2 control-label">参数</label><div class="col-sm-4"  style="display:flex;"><input class="form-control" name="kwargs[]" type="text"/><span class="removeVar">删</span></div></div>');
+
+         });
+         //删除按钮点击
+          $('form').on('click', '.removeVar', function(){
+            $(this).parent().parent().remove();
+            //varCount--;
+          });
+     });
+
+</script>
+
+{% endblock %}
