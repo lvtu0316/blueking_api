@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.views.static import serve
 from config import MEDIA_ROOT
-from home_application import views, api_views, visualization_views
+from home_application import views, api_views, visualization_views, msg_views
 
 urlpatterns = [
     url(r'^media/(?P<path>.*)$', serve, {"document_root": MEDIA_ROOT}),
@@ -53,5 +53,9 @@ urlpatterns = [
     url(r'hosts$', visualization_views.hosts, name="hosts"),
     url(r'usage$', visualization_views.usage, name="usage"),
     url(r'alarms$', visualization_views.alarms, name="alarms"),
+
+
+    #消息测试
+    url(r'msg$', msg_views.msg, name="msg")
 
 ]
