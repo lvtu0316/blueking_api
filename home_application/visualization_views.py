@@ -65,15 +65,15 @@ def usage(request):
     host = []
     cpu_kwargs = {
         'sql': 'select max(usage) as cpu from ' + str(
-            bk_biz_id) + '_system_cpu_detail where time >= "1m" group by ip order by time desc limit 1'
+            bk_biz_id) + '_system_cpu_detail  order by time desc limit 1'
     }
     mem_kwargs = {
         'sql': 'select max(pct_used) as mem from ' + str(
-            bk_biz_id) + '_system_mem where time >= "1m" group by ip order by time desc limit 1'
+            bk_biz_id) + '_system_mem  order by time desc limit 1'
     }
     disk_kwargs = {
         'sql': 'select max(in_use) as disk from ' + str(
-            bk_biz_id) + '_system_disk where time >= "1m" group by ip order by time desc limit 1'
+            bk_biz_id) + '_system_disk  order by time desc limit 1'
     }
     cpu = client.monitor.query_data(cpu_kwargs)
     mem = client.monitor.query_data(mem_kwargs)
