@@ -228,6 +228,7 @@ def getbusiness(request):
     username = "admin"
     client = get_client_by_user(username)
     result = client.cc.search_business()
+    result['data']['info'] = [x for x in result['data']['info'] if x['bk_biz_id'] != 2]
     return HttpResponse(json.dumps(result), content_type='application/json')
 
 @login_exempt

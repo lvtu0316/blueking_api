@@ -157,17 +157,19 @@ def get_data(request):
     client = get_client_by_user(user)
     bizs = client.cc.search_business()
     business = []
-    for biz in bizs['data']['info']:
+    for biz in bizs['data']['info'] :
+        if biz['bk_biz_id'] == 2:
+            continue
         cpu_kwargs = {
-            'sql' : 'select max(usage) as cpu from ' +str(biz['bk_biz_id'])+ '_system_cpu_detail where time >= "1m" group by ip order by time desc limit 1'
+            'sql' : 'select usage as cpu from ' +str(biz['bk_biz_id'])+ '_system_cpu_detail order by time desc limit 1'
         }
         mem_kwargs = {
-            'sql': 'select max(pct_used) as mem from ' + str(
-                biz['bk_biz_id']) + '_system_mem where time >= "1m" group by ip order by time desc limit 1'
+            'sql': 'select pct_used as mem from ' + str(
+                biz['bk_biz_id']) + '_system_mem  order by time desc limit 1'
         }
         disk_kwargs = {
             'sql': 'select max(in_use) as disk from ' + str(
-                biz['bk_biz_id']) + '_system_disk where time >= "1m" group by ip order by time desc limit 1'
+                biz['bk_biz_id']) + '_system_disk  order by time desc limit 1'
         }
         cpu = client.monitor.query_data(cpu_kwargs)
         mem = client.monitor.query_data(mem_kwargs)

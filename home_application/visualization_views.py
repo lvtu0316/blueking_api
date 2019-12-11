@@ -24,6 +24,8 @@ def hosts(request):
         result['message'] = '服务异常'
     else:
         for biz in business['data']['info']:
+            if biz['bk_biz_id'] == 2:
+                continue
             kwargs = {'bk_biz_id': biz['bk_biz_id']}
             hosts = client.cc.search_host(kwargs)
             if hosts['code'] == 0 and hosts['data']['count'] > 0:
