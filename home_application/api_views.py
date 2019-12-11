@@ -217,9 +217,11 @@ def disk_use(request):
     bizs = client.cc.search_business()
     business = []
     for biz in bizs['data']['info']:
+        if biz['bk_biz_id'] == 2:
+            continue
         kwargs = {
             'sql': 'select max(in_use) as disk from ' + str(
-                biz['bk_biz_id']) + '_system_disk where time >= "1m" group by ip order by time desc limit 1'
+                biz['bk_biz_id']) + '_system_disk order by time desc limit 1'
         }
         disk = client.monitor.query_data(kwargs)
         if disk['result'] != False and disk['code'] == '0':
